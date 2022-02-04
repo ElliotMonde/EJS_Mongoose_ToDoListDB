@@ -10,8 +10,8 @@ const date = require(__dirname + "/date.js");
 const mongoose = require("mongoose");
 const app = express();
 const _ = require("lodash");
-// connect to database
-const db = mongoose.connect("mongodb://127.0.0.1:27017/ToDoV2");
+// connect to database (use localhost if not on mongodb atlas)
+const db = mongoose.connect("mongodb+srv://ElliotMonde:<password>@elliotmonde.thgc3.mongodb.net/ToDoV2");
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -27,7 +27,8 @@ const workItems = [];
 //  Task Schema, prototype for task models
 // if post to /delete, delete the task document and the task subdocument in the page array
 // by getting the name of the item submitted by form action in list.ejs
-// redirect to page id (get page id by the listTitle in list.ejs)
+// redirect to page id (get page id by the listTitle in list.ejs) , after the save is complete. save will persist so add the redirect after save
+
 const taskSchema = mongoose.Schema({
   Task: {
     type: String,
@@ -61,6 +62,10 @@ app.listen(3000, function () {
   console.log("Server started on port 3000");
 });
 app.get("/" || "/home", function (req, res) {
+  res.redirect("/Home");
+})
+
+app.get("/Home", function (req, res) {
   const id = "Home";
   console.log("id:" + id);
 
@@ -89,8 +94,12 @@ app.get("/" || "/home", function (req, res) {
       defTask2.save();
       pageFound.taskItems.push(defTask1);
       pageFound.taskItems.push(defTask2);
+      pageFound.save(function(err){
+        if(err){console.log(err)};
+        res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
+      });
     }//add default
-    res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
+    res.render("list", { listTitle: "Home", newListItems: pageFound.taskItems });
   })
 
 })
@@ -120,8 +129,11 @@ app.get("/:id", function (req, res) {
       defTask2.save();
       pageFound.taskItems.push(defTask1);
       pageFound.taskItems.push(defTask2);
-      pageFound.save();
-
+      pageFound.save(function(err){
+        if(err){console.log(err)};
+        res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
+      });
+      
     }
     res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
   })
@@ -135,12 +147,40 @@ app.post("/delete", function (req, res) {
     if (err) { console.log(err) };
     pageFound.taskItems.pull({ _id: deleteItem });
     //  remember to save document so that the delete action is saved
-    pageFound.save();
+    pageFound.save(function(err){
+      if (err){console.log(err)};
+      res.redirect("/" + _.kebabCase(_.capitalize(id)));
+    });
+    
   });
 
-  res.redirect("/" + _.kebabCase(id));
+  
 
 })
+
+app.post("/" || "home", function (req, res) {
+  console.log("req.body.list is : " + req.body.list);
+  console.log("req.body.newItem : " + req.body.newItem);
+  const id = "Home";
+  const newItem = req.body.newItem;
+  //  use findOne to return one document else an array of documents
+  PageModel.findOne({ pageName: id }, function (err, pageFound) {
+    if (err) { console.log(err) };
+    const newTask = new TaskModel({
+      Task: newItem,
+      Page: id
+    });
+    newTask.save();
+    console.log("pageFound.taskItems : " + pageFound.taskItems);
+    pageFound.taskItems.push(newTask);
+    pageFound.save(function(err){
+      if (err){console.log(err)};
+      res.redirect("/" + _.kebabCase(_.capitalize(id)));
+  })
+
+})
+})
+
 app.post("/:id", function (req, res) {
   console.log("req.body.list is : " + req.body.list);
   console.log("req.body.newItem : " + req.body.newItem);
@@ -156,12 +196,15 @@ app.post("/:id", function (req, res) {
     newTask.save();
     console.log("pageFound.taskItems : " + pageFound.taskItems);
     pageFound.taskItems.push(newTask);
-    pageFound.save();
-    console.log(pageFound);
-
+    pageFound.save(function(err){
+      if (err){console.log(err)};
+      res.redirect("/" + _.kebabCase(_.capitalize(id)));
   })
-  res.redirect("/" + _.kebabCase(_.capitalize(id)));
+
 })
+
+})
+
 
 
 
