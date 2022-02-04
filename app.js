@@ -10,8 +10,10 @@ const date = require(__dirname + "/date.js");
 const mongoose = require("mongoose");
 const app = express();
 const _ = require("lodash");
+//  for connect account password
+const key = require(__dirname + "/key.js").key();
 // connect to database (use localhost if not on mongodb atlas)
-const db = mongoose.connect("mongodb+srv://ElliotMonde:<password>@elliotmonde.thgc3.mongodb.net/ToDoV2");
+const db = mongoose.connect("mongodb+srv://ElliotMonde:"+key+"@elliotmonde.thgc3.mongodb.net/ToDoV2");
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -96,10 +98,10 @@ app.get("/Home", function (req, res) {
       pageFound.taskItems.push(defTask2);
       pageFound.save(function(err){
         if(err){console.log(err)};
-        res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
+        return res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
       });
     }//add default
-    res.render("list", { listTitle: "Home", newListItems: pageFound.taskItems });
+    return res.render("list", { listTitle: "Home", newListItems: pageFound.taskItems });
   })
 
 })
@@ -131,11 +133,11 @@ app.get("/:id", function (req, res) {
       pageFound.taskItems.push(defTask2);
       pageFound.save(function(err){
         if(err){console.log(err)};
-        res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
+        //return res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
       });
       
     }
-    res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
+    return res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
   })
 
 })
@@ -149,7 +151,7 @@ app.post("/delete", function (req, res) {
     //  remember to save document so that the delete action is saved
     pageFound.save(function(err){
       if (err){console.log(err)};
-      res.redirect("/" + _.kebabCase(_.capitalize(id)));
+      return res.redirect("/" + _.kebabCase(_.capitalize(id)));
     });
     
   });
@@ -175,7 +177,7 @@ app.post("/" || "home", function (req, res) {
     pageFound.taskItems.push(newTask);
     pageFound.save(function(err){
       if (err){console.log(err)};
-      res.redirect("/" + _.kebabCase(_.capitalize(id)));
+      return res.redirect("/" + _.kebabCase(_.capitalize(id)));
   })
 
 })
@@ -198,7 +200,7 @@ app.post("/:id", function (req, res) {
     pageFound.taskItems.push(newTask);
     pageFound.save(function(err){
       if (err){console.log(err)};
-      res.redirect("/" + _.kebabCase(_.capitalize(id)));
+      return res.redirect("/" + _.kebabCase(_.capitalize(id)));
   })
 
 })
