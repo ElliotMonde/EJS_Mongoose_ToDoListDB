@@ -1,5 +1,9 @@
 //jshint esversion:6
-
+/* @author: Elliot Phua | @ElliotMonde on github
+ * Description: A To-Do-List webApp that stores newly created pages and the tasks in them.
+ * Task can also be deleted too.
+ * Done in Feb 2022.
+ */
 const express = require("express");
 const bodyParser = require("body-parser");
 const date = require(__dirname + "/date.js");
@@ -45,15 +49,7 @@ const pageSchema = new mongoose.Schema({
   taskItems: [taskSchema]
 });
 const PageModel = mongoose.model("Page", pageSchema);
-/*
-app.get("/", function (req, res) {
 
-  const day = date.getDate();
-
-  res.render("list", { listTitle: day, newListItems: items });
-
-});
-*/
 app.post("/" || "/home", function (req, res) {
 
   const item = req.body.newItem;
@@ -104,7 +100,6 @@ app.get("/" || "/home", function (req, res) {
       defTask2.save();
       pageFound.taskItems.push(defTask1);
       pageFound.taskItems.push(defTask2);
-      //pageFound.save();
     }//add default
     res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
   })
@@ -138,8 +133,7 @@ app.get("/:id", function (req, res) {
       pageFound.taskItems.push(defTask2);
       pageFound.save();
 
-    }//add default
-    console.log("THINGS TO RENDER>>>>> : " + pageFound.pageName + " \n PageFound.taskItems:  " + pageFound.taskItems);
+    }
     res.render("list", { listTitle: pageFound.pageName, newListItems: pageFound.taskItems });
   })
 
@@ -148,22 +142,14 @@ app.get("/:id", function (req, res) {
 app.post("/delete", function (req, res) {
   const deleteItem = req.body.checkbox;
   const id = req.body.hidden;
-  // how to get back page id ??
-  console.log("delete: id is : " + req.body.hidden);
-  console.log("delete: id of item: " + req.body.checkbox);
   PageModel.findOne({ pageName: id }, function (err, pageFound) {
     if (err) { console.log(err) };
     pageFound.taskItems.pull({ _id: deleteItem });
     //  remember to save document so that the delete action is saved
     pageFound.save();
-    console.log("taskItem in pageFound in delete get : " + pageFound.taskItems);
   });
 
   res.redirect("/" + id);
-
-
-
-  //res.redirect("/"+ id);
 
 })
 app.post("/:id", function (req, res) {
@@ -174,8 +160,6 @@ app.post("/:id", function (req, res) {
   //  use findOne to return one document else an array of documents
   PageModel.findOne({ pageName: id }, function (err, pageFound) {
     if (err) { console.log(err) };
-
-    // why is pageFound returned as the document collection but pageFound.taskItems is undefined? 
     const newTask = new TaskModel({
       Task: newItem,
       Page: id
