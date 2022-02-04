@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 const date = require(__dirname + "/date.js");
 const mongoose = require("mongoose");
 const app = express();
+const _ = require("lodash");
 // connect to database
 const db = mongoose.connect("mongodb://127.0.0.1:27017/ToDoV2");
 app.set('view engine', 'ejs');
@@ -50,18 +51,6 @@ const pageSchema = new mongoose.Schema({
 });
 const PageModel = mongoose.model("Page", pageSchema);
 
-app.post("/" || "/home", function (req, res) {
-
-  const item = req.body.newItem;
-
-  if (req.body.list === "Work") {
-    workItems.push(item);
-    res.redirect("/work");
-  } else {
-    items.push(item);
-    res.redirect("/");
-  }
-});
 
 
 app.get("/about", function (req, res) {
@@ -72,7 +61,7 @@ app.listen(3000, function () {
   console.log("Server started on port 3000");
 });
 app.get("/" || "/home", function (req, res) {
-  const id = "home";
+  const id = "Home";
   console.log("id:" + id);
 
   PageModel.findOne({ pageName: id }, function (err, pageFound) {
@@ -90,11 +79,11 @@ app.get("/" || "/home", function (req, res) {
     if (pageFound.taskItems == '') {
       const defTask1 = new TaskModel({
         Task: "click '+' to add new Task",
-        Page: 'home'
+        Page: id
       });
       const defTask2 = new TaskModel({
         Task: "<--check box to delete Task",
-        Page: 'home'
+        Page: id
       });
       defTask1.save();
       defTask2.save();
@@ -107,7 +96,7 @@ app.get("/" || "/home", function (req, res) {
 })
 
 app.get("/:id", function (req, res) {
-  const id = req.params.id;
+  const id = _.capitalize(req.params.id).replace(/-/g, " ");
   console.log("id:" + id);
 
   PageModel.findOne({ pageName: id }, function (err, pageFound) {
@@ -149,7 +138,7 @@ app.post("/delete", function (req, res) {
     pageFound.save();
   });
 
-  res.redirect("/" + id);
+  res.redirect("/" + _.kebabCase(id));
 
 })
 app.post("/:id", function (req, res) {
@@ -171,7 +160,7 @@ app.post("/:id", function (req, res) {
     console.log(pageFound);
 
   })
-  res.redirect("/" + id);
+  res.redirect("/" + _.kebabCase(_.capitalize(id)));
 })
 
 
